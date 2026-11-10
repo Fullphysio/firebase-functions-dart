@@ -184,6 +184,7 @@ class EndpointSpec {
         // - heartBeatIntervalSeconds: Runtime streaming keepalive
         // - preserveExternalChanges: Deployment behavior, not function config
         case 'cors':
+        case 'corsMaxAgeSeconds':
         case 'preserveExternalChanges':
         case 'consumeAppCheckToken':
         case 'heartBeatIntervalSeconds':
