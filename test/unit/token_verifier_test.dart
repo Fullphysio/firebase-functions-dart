@@ -176,6 +176,73 @@ void main() {
       });
     });
 
+    group('audience', () {
+      final verifier = AuthBlockingTokenVerifier(projectId: 'test-project');
+
+      Map<String, dynamic> claims(Object aud) => {
+        'iss': 'https://securetoken.google.com/test-project',
+        'aud': aud,
+        'sub': 'user-123',
+        'exp': _futureTimestamp(),
+        'iat': _nowTimestamp(),
+        'event_type': 'beforeCreate',
+      };
+
+      test('accepts the run.app URL when run.app is expected', () {
+        verifier.validateClaims(
+          claims('https://beforecreate-abc123-ey.a.run.app'),
+          'run.app',
+        );
+      });
+
+      test('accepts the cloudfunctions.net URL when run.app is expected', () {
+        verifier.validateClaims(
+          claims(
+            'https://europe-west3-test-project.cloudfunctions.net/beforecreate',
+          ),
+          'run.app',
+        );
+      });
+
+      test('accepts the cloudfunctions.net URL by default', () {
+        verifier.validateClaims(
+          claims(
+            'https://europe-west3-test-project.cloudfunctions.net/beforecreate',
+          ),
+          null,
+        );
+      });
+
+      test('rejects a run.app URL by default', () {
+        expect(
+          () => verifier.validateClaims(
+            claims('https://beforecreate-abc123-ey.a.run.app'),
+            null,
+          ),
+          throwsA(isA<HttpResponseException>()),
+        );
+      });
+
+      test('rejects another project', () {
+        expect(
+          () => verifier.validateClaims(
+            claims(
+              'https://europe-west3-other-project.cloudfunctions.net/beforecreate',
+            ),
+            'run.app',
+          ),
+          throwsA(isA<HttpResponseException>()),
+        );
+      });
+
+      test('accepts a list holding an expected audience', () {
+        verifier.validateClaims(
+          claims(['other', 'https://beforecreate-abc123-ey.a.run.app']),
+          'run.app',
+        );
+      });
+    });
+
     group('production mode', () {
       setUp(AuthBlockingTokenVerifier.clearCertificateCache);
       tearDown(AuthBlockingTokenVerifier.clearCertificateCache);
